@@ -32,8 +32,10 @@
 
     if ([moduleName hasPrefix:@"http:"] || [moduleName hasPrefix:@"https:"]) {
         viewController.startPage = moduleName;
+        [[UINavigationBar appearance] setTranslucent:NO];
     } else {
         viewController.startPage = [moduleName stringByAppendingString:@".html"];
+        [[UINavigationBar appearance] setTranslucent:YES];
     }
 
 //    viewController.configFile = [moduleName stringByAppendingString:@".xml"];
@@ -104,6 +106,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     if (self.inViewControllerStack) {
+        [[UINavigationBar appearance] setTranslucent:NO];
         if ([self.startPage hasPrefix:@"http:"] || [self.startPage hasPrefix:@"https:"]) {
             [self.navigationController setNavigationBarHidden:NO animated:YES];
         } else {
