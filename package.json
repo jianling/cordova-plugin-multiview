@@ -1,0 +1,25 @@
+{
+  "name": "cordova-plugin-multiview",
+  "version": "1.0.0",
+  "description": "Cordova Multiview Plugin",
+  "cordova": {
+    "id": "cordova-plugin-multiview",
+    "platforms": [
+      "browser",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "cordova",
+    "multiview",
+    "cordova-ios"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "author": "jianling",
+  "license": "Apache 2.0"
+}
