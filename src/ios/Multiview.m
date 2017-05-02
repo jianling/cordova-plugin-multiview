@@ -91,8 +91,6 @@
 
     UIWebView* webView = (UIWebView*) self.webView;
 
-//    NSObject* viewController = [[ViewControllerWithDelegate alloc] init];
-
 #ifdef __CORDOVA_4_0_0
     webView.delegate = [[CDVUIWebViewDelegate alloc] initWithDelegate:self];
 #else

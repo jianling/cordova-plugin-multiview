@@ -49,6 +49,8 @@
         <!-- Plugin source code -->
         <header-file src="src/ios/Multiview.h" />
         <source-file src="src/ios/Multiview.m" />
+        <header-file src="src/ios/SCGIFImageView.h" />
+        <source-file src="src/ios/SCGIFImageView.m" />
 
     </platform>
 
