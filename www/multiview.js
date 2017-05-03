@@ -25,8 +25,8 @@ var exec = require('cordova/exec');
 
 
 var Multiview = {
-    pushView: function(name, title, success, failure) {
-        return exec(success, failure, "Multiview", "pushView", [name, title]);
+    pushView: function(name, title, configFile, success, failure) {
+        return exec(success, failure, "Multiview", "pushView", [name, title, configFile]);
     },
     popView: function(success, failure) {
         return exec(success, failure, "Multiview", "popView");

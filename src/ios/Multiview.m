@@ -27,21 +27,19 @@
 {
     NSString* moduleName = [command.arguments objectAtIndex:0];
     NSString* moduleTitle = [command.arguments objectAtIndex:1];
+    NSString* moduleConfigFile = [command.arguments objectAtIndex:2];
 
     MainViewController *viewController = [[ViewController alloc] init];
 
     if ([moduleName hasPrefix:@"http:"] || [moduleName hasPrefix:@"https:"]) {
-        viewController.startPage = moduleName;
         [[UINavigationBar appearance] setTranslucent:NO];
     } else {
-        viewController.startPage = [moduleName stringByAppendingString:@".html"];
         [[UINavigationBar appearance] setTranslucent:YES];
     }
-
-//    viewController.configFile = [moduleName stringByAppendingString:@".xml"];
-    viewController.configFile = @"www/index.xml";
-
+    viewController.startPage = moduleName;
     viewController.title = moduleTitle;
+    viewController.configFile = moduleConfigFile;
+
     UIColor *titleColor = [UIColor colorWithRed:255.0 / 255.0 green:255.0 / 255.0 blue:255.0 / 255.0 alpha:1];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
                                                            NSForegroundColorAttributeName: titleColor
@@ -53,7 +51,7 @@
         UINavigationController *nav = [[UINavigationController alloc] init];
 
         [nav.navigationBar setBarTintColor:[UIColor colorWithRed:25.0 / 255.0 green:35.0 / 255.0 blue:60.0 / 255.0 alpha:1]];
-//        [[UINavigationBar appearance] setTranslucent:NO];
+        //        [[UINavigationBar appearance] setTranslucent:NO];
 
         self.webView.window.rootViewController = nav;
         [nav pushViewController:self.viewController animated:false];
@@ -97,6 +95,8 @@
     webView.delegate = [[CDVWebViewDelegate alloc] initWithDelegate:self];
 #endif
 
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(webViewDidFinishLoad:) name:CDVPageDidLoadNotification object:nil];
+
     return self;
 }
 
@@ -130,7 +130,7 @@
     self.inViewControllerStack = true;
 }
 
-- (void)webViewDidFinishLoad:(UIWebView*)theWebView
+- (void)webViewDidFinishLoad:(NSNotification*)notification
 {
     NSLog(@"webViewDidFinishLoad");
 
@@ -142,17 +142,7 @@
         [self.navigationController setNavigationBarHidden:YES animated:NO];
     }
 
-    CDVViewController* vc = (CDVViewController*)self;
-
-    // It's safe to release the lock even if this is just a sub-frame that's finished loading.
-    [CDVUserAgentUtil releaseLock:vc.userAgentLockToken];
-
-    /*
-     * Hide the Top Activity THROBBER in the Battery Bar
-     */
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-
-    [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:CDVPageDidLoadNotification object:self.webView]];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:CDVPageDidLoadNotification object:nil];
 }
 
 @end

@@ -39,7 +39,7 @@
 
 @end
 
-@interface ViewController : MainViewController<UIWebViewDelegate> {
+@interface ViewController : MainViewController<CDVScreenOrientationDelegate> {
 #ifdef __CORDOVA_4_0_0
     CDVUIWebViewDelegate* _webViewDelegate;
 #else
@@ -49,6 +49,7 @@
 
 @property (nonatomic, assign) BOOL inViewControllerStack;
 @property (nonatomic, weak) SCGIFImageView* loadingImageView;
+@property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 
 @end
 
