@@ -21,6 +21,12 @@
 #import <Cordova/CDVUserAgentUtil.h>
 #import "Multiview.h"
 
+@interface Multiview() {
+    UIView* statusBarView;
+    UIView* background;
+}
+@end
+
 @implementation Multiview
 
 - (void)pushView:(CDVInvokedUrlCommand*)command
@@ -31,33 +37,43 @@
 
     MainViewController *viewController = [[ViewController alloc] init];
 
-    if ([moduleName hasPrefix:@"http:"] || [moduleName hasPrefix:@"https:"]) {
-        [[UINavigationBar appearance] setTranslucent:NO];
-    } else {
-        [[UINavigationBar appearance] setTranslucent:YES];
-    }
     viewController.startPage = moduleName;
-    viewController.title = moduleTitle;
     viewController.configFile = moduleConfigFile;
+    viewController.title = moduleTitle;
 
-    UIColor *titleColor = [UIColor colorWithRed:255.0 / 255.0 green:255.0 / 255.0 blue:255.0 / 255.0 alpha:1];
-    [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                                           NSForegroundColorAttributeName: titleColor
-                                                           }];
-    viewController.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"BackIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(popView)];
-    [viewController.navigationItem.leftBarButtonItem setTintColor:[UIColor whiteColor]];
+    [[UINavigationBar appearance] setTranslucent:NO];
+    if ([moduleName hasPrefix:@"http:"] || [moduleName hasPrefix:@"https:"]) {
+        [[UINavigationBar appearance] setBarTintColor:[UIColor colorWithRed:25.0 / 255.0 green:35.0 / 255.0 blue:60.0 / 255.0 alpha:1]];
+
+        UIColor *titleColor = [UIColor colorWithRed:255.0 / 255.0 green:255.0 / 255.0 blue:255.0 / 255.0 alpha:1];
+        [[UINavigationBar appearance] setTitleTextAttributes:@{
+                                                               NSForegroundColorAttributeName: titleColor
+                                                               }];
+        viewController.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"BackIcon"] style:UIBarButtonItemStylePlain target:self action:@selector(popView)];
+        [viewController.navigationItem.leftBarButtonItem setTintColor:[UIColor whiteColor]];
+    } else {
+        background = [[UIView alloc] initWithFrame:CGRectMake(0, 64, viewController.view.bounds.size.width, viewController.view.bounds.size.height)];
+        background.backgroundColor = [UIColor colorWithRed:218.0 / 255.0 green:222.0 / 255.0 blue:232.0 / 255.0 alpha:1];
+        [viewController.view addSubview:background];
+
+        statusBarView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, viewController.view.bounds.size.width, 64)];
+        statusBarView.backgroundColor = [UIColor colorWithRed:25.0 / 255.0 green:35.0 / 255.0 blue:60.0 / 255.0 alpha:1];
+        [viewController.view addSubview:statusBarView];
+        [viewController setNeedsStatusBarAppearanceUpdate];
+    }
+
 
     if (self.viewController.navigationController == NULL) {
         UINavigationController *nav = [[UINavigationController alloc] init];
 
-        [nav.navigationBar setBarTintColor:[UIColor colorWithRed:25.0 / 255.0 green:35.0 / 255.0 blue:60.0 / 255.0 alpha:1]];
-        //        [[UINavigationBar appearance] setTranslucent:NO];
-
         self.webView.window.rootViewController = nav;
         [nav pushViewController:self.viewController animated:false];
+        [self.viewController.navigationController setNavigationBarHidden:YES animated:NO];
     }
 
     [self.viewController.navigationController pushViewController:viewController animated:true];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_hideNavigationBar:) name:@"hideNavigationBar" object:nil];
 }
 
 - (void)popView:(CDVInvokedUrlCommand*)command
@@ -76,7 +92,14 @@
 
 - (void)hideNavigationBar:(CDVInvokedUrlCommand*)command
 {
-    [self.viewController.navigationController setNavigationBarHidden:YES animated:NO];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"hideNavigationBar" object:nil];
+}
+
+- (void)_hideNavigationBar:(NSNotification*)notification
+{
+    [statusBarView removeFromSuperview];
+    [background removeFromSuperview];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"hideNavigationBar" object:nil];
 }
 
 @end
@@ -105,29 +128,27 @@
 {
     if (self.inViewControllerStack) {
         [[UINavigationBar appearance] setTranslucent:NO];
-        if ([self.startPage hasPrefix:@"http:"] || [self.startPage hasPrefix:@"https:"]) {
-            [self.navigationController setNavigationBarHidden:NO animated:YES];
-        } else {
-            [self.navigationController setNavigationBarHidden:YES animated:NO];
-        }
+    } else {
+        CGRect viewBounds = self.view.bounds;
 
-        return;
+        NSString* filePath = [[NSBundle mainBundle] pathForResource:@"process.gif" ofType:nil];
+        NSData* imageData = [NSData dataWithContentsOfFile:filePath];
+
+        SCGIFImageView* gifImageView = [[SCGIFImageView alloc] initWithFrame:CGRectMake((viewBounds.size.width - 60) / 2, (viewBounds.size.height - 60) / 2, 60, 60)];
+        [gifImageView setData:imageData];
+        [self.view addSubview:gifImageView];
+
+        self.loadingImageView = gifImageView;
+
+        self.inViewControllerStack = true;
     }
 
-    CGRect viewBounds = self.view.bounds;
+    if ([self.startPage hasPrefix:@"http:"] || [self.startPage hasPrefix:@"https:"]) {
+        [self.navigationController setNavigationBarHidden:NO animated:NO];
+    } else {
+        [self.navigationController setNavigationBarHidden:YES animated:NO];
+    }
 
-    NSString* filePath = [[NSBundle mainBundle] pathForResource:@"process.gif" ofType:nil];
-    NSData* imageData = [NSData dataWithContentsOfFile:filePath];
-
-    SCGIFImageView* gifImageView = [[SCGIFImageView alloc] initWithFrame:CGRectMake((viewBounds.size.width - 60) / 2, (viewBounds.size.height - 60) / 2, 60, 60)];
-    [gifImageView setData:imageData];
-    [self.view addSubview:gifImageView];
-
-    self.loadingImageView = gifImageView;
-
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
-
-    self.inViewControllerStack = true;
 }
 
 - (void)webViewDidFinishLoad:(NSNotification*)notification
@@ -136,10 +157,9 @@
 
     [self.loadingImageView removeFromSuperview];
 
-    if ([self.startPage hasPrefix:@"http:"] || [self.startPage hasPrefix:@"https:"]) {
-        [self.navigationController setNavigationBarHidden:NO animated:YES];
-    } else {
-        [self.navigationController setNavigationBarHidden:YES animated:NO];
+    if ([self.title isEqualToString:@""]) {
+        UIWebView* webView = (UIWebView*) self.webView;
+        self.title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
     }
 
     [[NSNotificationCenter defaultCenter] removeObserver:self name:CDVPageDidLoadNotification object:nil];

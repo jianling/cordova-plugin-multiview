@@ -52,4 +52,3 @@
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 
 @end
-
